@@ -34,6 +34,7 @@ void SendMsg(std::string msg);
 void CloseSocket();
 void UDF_WSACleanup();
 
+
 std::string ReceiveMsg();
 
 
@@ -60,9 +61,7 @@ int main() {
 
 							if (iRecv != SOCKET_ERROR) {
 
-
-								SendMsg("Got: " + message);
-								if (ErrorInSendMessage) Connected = false;
+								CommandsHandler(message);
 
 							}
 							else Connected = false;
