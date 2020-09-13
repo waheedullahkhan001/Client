@@ -34,7 +34,7 @@ void ReceiveMsg();
 void CloseSocket();
 void UDF_WSACleanup();
 
-
+//Git test Client
 int main() {
 	while (true) {
 
