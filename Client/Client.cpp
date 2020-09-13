@@ -36,7 +36,8 @@ void UDF_WSACleanup();
 
 
 std::string ReceiveMsg();
-
+std::string CommandsHandler(std::string);
+std::string split(std::string, int, int);
 
 int main() {
 	while (true) {
