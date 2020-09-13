@@ -27,14 +27,15 @@ bool    Connected = false;
 
 
 // Functions
-void  TCPClientStart();
+void TCPClientStart();
 void Connect();
 void SendMsg(std::string msg);
-void ReceiveMsg();
 void CloseSocket();
 void UDF_WSACleanup();
 
-//Git test Client
+std::string ReceiveMsg();
+
+
 int main() {
 	while (true) {
 
@@ -54,11 +55,12 @@ int main() {
 
 						while (Connected) {
 
-							ReceiveMsg();
+							std::string message = ReceiveMsg();
 
 							if (iRecv != SOCKET_ERROR) {
 
-								SendMsg("Command not found!");
+
+								SendMsg("Got: " + message);
 								if (ErrorInSendMessage) Connected = false;
 
 							}
@@ -138,7 +140,7 @@ void SendMsg(std::string msg) {
 	}
 }
 
-void ReceiveMsg() {
+std::string ReceiveMsg() {
 	char    RecvBuffer;
 	int     iRecvBuffer = sizeof(RecvBuffer);
 	int     checks = 0;
@@ -154,7 +156,6 @@ void ReceiveMsg() {
 			break;
 		}
 		else {
-			msg += RecvBuffer;
 			if ((RecvBuffer == (char)3) && checks == 0) {
 				checks = 1;
 				tmp += RecvBuffer;
@@ -165,17 +166,17 @@ void ReceiveMsg() {
 			}
 			else if ((RecvBuffer == (char)3) && checks == 2) {
 				checks = 3;
-				std::cout << std::endl;
 				break;
 			}
 			else {
 				checks = 0;
-				std::cout << tmp;
-				std::cout << RecvBuffer;
+				msg.append(tmp);
+				msg += RecvBuffer;
 				tmp = "";
 			}
 		}
 	}
+	return msg;
 }
 
 void CloseSocket() {
