@@ -33,7 +33,6 @@ void SendMsg(std::string msg);
 void CloseSocket();
 void UDF_WSACleanup();
 
-void CommandsHandler(std::string msg);
 
 std::string ReceiveMsg();
 
@@ -189,16 +188,4 @@ void UDF_WSACleanup() {
 	iWsaCleanup = WSACleanup();
 	if (iWsaCleanup == SOCKET_ERROR) std::cout << "Cleanup Func Failed! Error no: " << WSAGetLastError() << std::endl;
 	else std::cout << "WSACleanup Func Success!" << std::endl;
-}
-
-void CommandsHandler(std::string msg) {
-
-	if (msg == "help") {
-		SendMsg("Commands list:\n\thelp");
-	}
-	else {
-		SendMsg("Command not found!");
-	}
-	if (ErrorInSendMessage) Connected = false;
-	
 }
