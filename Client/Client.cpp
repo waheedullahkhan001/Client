@@ -112,23 +112,50 @@ std::string CommandsHandler(std::string msg) {
 
 	else if (msg.find("WriteFile") == 0) {
 
-		if (msg.find(" ") == 10) {
-			int splitPoint = msg.find(" in ");
+		if (msg.find(" ") == 9) {
+			int splitPoint = msg.find(" ~> ");
 			if (splitPoint == std::string::npos) return "Invalid Syntax";
 
-			std::string fileName = split(msg, 11, splitPoint);
+			std::string filename = split(msg, 10, splitPoint);
 			splitPoint += 4;
 			if (splitPoint >= msg.length()) return "Invalid Syntax";
 
-			std::string path = split(msg, splitPoint, msg.length());
-			path.append(fileName);
+			std::string text = split(msg, splitPoint, msg.length());
 
-			std::ofstream file(path);
-			if (file.is_open()) {
-				file.close();
-				return "File created at " + path;
+			std::ofstream outfile;
+			outfile.open(filename);
+
+			outfile << text;
+			if (outfile.is_open()) {
+				outfile.close();
+				return "Done! ";
 			}
-			else return "Failed to create file! Please check the path you entered";
+			else return "Failed to write file! Please check the file name you entered";
+		}
+		else return "Invalid Syntax";
+	}
+
+	else if (msg.find("AppendFile") == 0) {
+
+		if (msg.find(" ") == 10) {
+			int splitPoint = msg.find(" ~> ");
+			if (splitPoint == std::string::npos) return "Invalid Syntax";
+
+			std::string filename = split(msg, 11, splitPoint);
+			splitPoint += 4;
+			if (splitPoint >= msg.length()) return "Invalid Syntax";
+
+			std::string text = split(msg, splitPoint, msg.length());
+
+			std::ofstream outfile;
+			outfile.open(filename, std::ofstream::app);
+
+			outfile << text;
+			if (outfile.is_open()) {
+				outfile.close();
+				return "Done! ";
+			}
+			else return "Failed to append file! Please check the file name you entered";
 		}
 		else return "Invalid Syntax";
 	}
