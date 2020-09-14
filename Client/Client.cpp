@@ -203,12 +203,10 @@ std::string CommandsHandler(std::string msg) {
 		return help;
 	}
 	else if (msg.find("create") == 0) {
-		//std::cout << "create [FileName] in [Directory]" << std::endl;
 		if (msg.find(" ") == 6) {
 			int splitPoint = msg.find(" in ");
 			if (splitPoint == std::string::npos) return "Invalid Syntax";
 			std::string fileName = split(msg, 7, splitPoint);
-			//std::cout << "File Name: >" << fileName << "<" << std::endl; // debuging line
 			splitPoint += 4;
 			if (splitPoint >= msg.length()) return "Invalid Syntax";
 			std::string loc = split(msg, splitPoint, msg.length());
@@ -217,12 +215,11 @@ std::string CommandsHandler(std::string msg) {
 			std::ofstream file(path);
 			if (file.is_open()) {
 				file.close();
-				return "Done";
+				return "File is created.";
 			}
 			else {
 				return "File filed to create";
 			}
-			//std::cout << "Location: >" << loc << "<" << std::endl; // debuging line
 		}
 		else {
 			return "Invalid Syntax of create cmd";
@@ -239,7 +236,7 @@ std::string CommandsHandler(std::string msg) {
 			std::string path = loc;
 			path.append(fileName);
 			TakeScreenShot(path);
-			return "Done";
+			return "Screenshot taken.";
 		}
 		else {
 			return "Invalid Syntax of create cmd";
