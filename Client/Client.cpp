@@ -179,6 +179,28 @@ std::string CommandsHandler(std::string msg) {
 		else return "Invalid Syntax";
 	}
 
+	else if (msg.find("MsgBox") == 0) {
+
+		if (msg.find(" ") == 6) {
+			int splitPoint = msg.find(" ~> ");
+			if (splitPoint == std::string::npos) return "Invalid Syntax";
+
+			std::wstring title_temp = s2ws(split(msg, 7, splitPoint));
+			LPCWSTR title = title_temp.c_str();
+
+			splitPoint += 4;
+			if (splitPoint >= msg.length()) return "Invalid Syntax";
+
+			std::wstring text_temp = s2ws(split(msg, splitPoint, msg.length()));
+			LPCWSTR text = text_temp.c_str();
+
+			MessageBox(0, text, title, MB_OK);
+
+			return "Done!";
+		}
+		else return "Invalid Syntax";
+	}
+
 	else if (msg.find("exec") == 0) {
 		if (msg.find(" ") == 4) {
 			std::string cmd = split(msg, 5, msg.length());
