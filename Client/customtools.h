@@ -2,7 +2,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <stdio.h>
-#include<string>
+#include <string>
 #include <Windows.h>
 #include <winuser.h>
 #include <vector>
@@ -37,18 +37,23 @@ void TakeScreenShot(const std::string& path) {
 	fi.close();
 }
 
-void exec(std::string command) {
-	char buffer[128];
-	FILE* pipe = _popen(command.c_str(), "r");
-	if (!pipe) {
-		std::cout << "_popen failed!" << std::endl;
+
+std::string split(std::string str, int from, int to) {
+	std::string subStr;
+	for (int i = from; i < to; i++) {
+		subStr += str.at(i);
 	}
-	// read till end of process:
-	while (!feof(pipe)) {
-		if (fgets(buffer, 128, pipe) != NULL) {
-			Sleep(1);
-			std::cout << buffer;
-		}
-	}
-	_pclose(pipe);
+	return subStr;
+}
+
+std::wstring s2ws(const std::string& s)
+{
+	int len;
+	int slength = (int)s.length() + 1;
+	len = MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, 0, 0);
+	wchar_t* buf = new wchar_t[len];
+	MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, buf, len);
+	std::wstring r(buf);
+	delete[] buf;
+	return r;
 }
